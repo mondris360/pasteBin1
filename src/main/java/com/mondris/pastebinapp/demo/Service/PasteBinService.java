@@ -4,4 +4,5 @@ import com.mondris.pastebinapp.demo.Model.Paste;
 
 public interface PasteBinService {
     public Paste createPasteBin(Paste newPaste);
+    public Paste likePasteContent(long )
 }

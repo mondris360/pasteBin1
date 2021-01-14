@@ -17,7 +17,7 @@ import java.sql.Timestamp;
 public class Paste {
     @Id
     private long id;
-    private String urlCode;
+    private String name;
     private String snippet;
     private Timestamp expires_at;
     private int totalLikes;
