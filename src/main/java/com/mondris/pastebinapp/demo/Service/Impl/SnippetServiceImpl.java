@@ -24,7 +24,7 @@ public class SnippetServiceImpl implements SnippetService {
     public SnippetResponseDto createSnippet(SnippetRequestDto newPaste) throws Exception {
         Snippet snippet = new Snippet();
         SnippetResponseDto pasteResDto;
-        // create a new paste Object from the DTO
+        // create a new snippet  Object from the DTO
         snippet.setName(newPaste.getName());
         snippet.setPassword(newPaste.getPassword());
         snippet.setSnippet(newPaste.getSnippet());
@@ -36,7 +36,7 @@ public class SnippetServiceImpl implements SnippetService {
             if (createdSnippet.getCreated_at() == null) {
                 throw new IllegalArgumentException("A paste with the name " + newPaste.getName() + "Already exists");
             }
-            pasteResDto = convertToPasteResDTO(createdSnippet);
+            pasteResDto = convertToSnippetResponseDto(createdSnippet);
         } catch (Exception e) {
             log.warn(e.getMessage());
             throw new Exception(e.getMessage());
@@ -54,9 +54,9 @@ public class SnippetServiceImpl implements SnippetService {
         SnippetResponseDto apiResponse = null;
         int extendExpiresAtBySeconds = 30;
 
+
         try {
             retrievedSnippet = snippetRepository.getByName(snippetName);
-
             // check if a valid paste bin name was provided by the user
             if (retrievedSnippet == null) {
                 throw new IllegalArgumentException("Invalid Snippet Name");
@@ -68,7 +68,7 @@ public class SnippetServiceImpl implements SnippetService {
                 retrievedSnippet.setExpires_at(retrievedSnippet.getExpires_at().plusSeconds(extendExpiresAtBySeconds));
                 retrievedSnippet.setLikes(retrievedSnippet.getLikes() + 1);
                 snippet = snippetRepository.save(retrievedSnippet);
-                apiResponse = convertToPasteResDTO(snippet);
+                apiResponse = convertToSnippetResponseDto(snippet);
             }
         } catch (Exception e) {
             log.warn(e.getMessage());
@@ -90,14 +90,13 @@ public class SnippetServiceImpl implements SnippetService {
 
         try {
             retrievedSnippet = snippetRepository.getByName(pasteBinName);
-
             if (retrievedSnippet == null) {
                 throw new NotFoundException("404 Not Found");
                 // if the snippet has expired
             } else if (retrievedSnippet.getExpires_at().isAfter(LocalDateTime.now())) {
                 throw new IllegalAccessException("404 Not Found");
             } else {
-                pasteResDto = convertToPasteResDTO(retrievedSnippet);
+                pasteResDto = convertToSnippetResponseDto(retrievedSnippet);
             }
 
         } catch (Exception e) {
@@ -109,7 +108,7 @@ public class SnippetServiceImpl implements SnippetService {
 
 
     // method to convert a Paste Model to a PasteDto
-    private SnippetResponseDto convertToPasteResDTO(Snippet snippet) {
+    private SnippetResponseDto convertToSnippetResponseDto(Snippet snippet) {
         SnippetResponseDto pasteDto = new SnippetResponseDto();
         pasteDto.setName(snippet.getName());
         pasteDto.setExpires_at(snippet.getExpires_at());
