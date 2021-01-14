@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PasteReqDto extends PasteBaseDto {
+public class SnippetRequestDto extends PasteBaseDto {
     private  long expires_at;
 }

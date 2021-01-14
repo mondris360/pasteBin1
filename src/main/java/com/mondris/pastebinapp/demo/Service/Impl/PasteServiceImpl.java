@@ -1,12 +1,11 @@
 package com.mondris.pastebinapp.demo.Service.Impl;
 
-import com.mondris.pastebinapp.demo.DTO.PasteReqDto;
+import com.mondris.pastebinapp.demo.DTO.SnippetRequestDto;
 import com.mondris.pastebinapp.demo.DTO.PasteResDto;
 import com.mondris.pastebinapp.demo.Model.Paste;
 import com.mondris.pastebinapp.demo.Repository.PasteRepository;
 import com.mondris.pastebinapp.demo.Service.PasteBinService;
 import javassist.NotFoundException;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -20,7 +19,7 @@ public class PasteServiceImpl implements PasteBinService {
     LocalDateTime localDateTime;
 
     @Override
-    public PasteResDto createPaste(PasteReqDto newPaste) throws Exception {
+    public PasteResDto createSnippet(SnippetRequestDto newPaste) throws Exception {
         Paste paste = new Paste();
         PasteResDto pasteResDto;
         // create a new paste Object from the DTO
@@ -47,7 +46,7 @@ public class PasteServiceImpl implements PasteBinService {
 
     @Override
     // method to like a paste content
-    public PasteResDto likePasteContent(String pasteBinName) throws Exception{
+    public PasteResDto likeSnippetContent(String pasteBinName) throws Exception{
         Paste getPaste = null;
         Paste paste ;
         PasteResDto apiResponse = null;
@@ -80,7 +79,7 @@ public class PasteServiceImpl implements PasteBinService {
 
     // method to retrieve paste bin content by Name
     @Override
-    public PasteResDto getPasteBinByName(String pasteBinName) throws Exception {
+    public PasteResDto getSnippetByName(String pasteBinName) throws Exception {
         PasteResDto pasteResDto = null;
         Paste retrievedPaste =  null;
 
@@ -90,9 +89,10 @@ public class PasteServiceImpl implements PasteBinService {
 
         try {
             retrievedPaste =  pasteRepository.getByName(pasteBinName);
+
             if(retrievedPaste == null){
                 throw  new NotFoundException("404 Not Found");
-                // if the paste bin has expired
+                // if the snippet has expired
             } else if(retrievedPaste.getExpires_at().isAfter(LocalDateTime.now())){
                 throw new IllegalAccessException("404 Not Found");
             } else {
