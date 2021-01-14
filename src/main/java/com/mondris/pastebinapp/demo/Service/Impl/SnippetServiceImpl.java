@@ -3,7 +3,7 @@ package com.mondris.pastebinapp.demo.Service.Impl;
 import com.mondris.pastebinapp.demo.DTO.SnippetRequestDto;
 import com.mondris.pastebinapp.demo.DTO.PasteResDto;
 import com.mondris.pastebinapp.demo.Model.Paste;
-import com.mondris.pastebinapp.demo.Repository.PasteRepository;
+import com.mondris.pastebinapp.demo.Repository.SnippetRepository;
 import com.mondris.pastebinapp.demo.Service.PasteBinService;
 import javassist.NotFoundException;
 import org.springframework.stereotype.Service;
@@ -12,10 +12,10 @@ import javax.annotation.Resource;
 import java.time.LocalDateTime;
 
 @Service
-public class PasteServiceImpl implements PasteBinService {
+public class SnippetServiceImpl implements PasteBinService {
     private String baseUrl = "https://example.com/snippets/";
     @Resource   // better than using @ Autowired
-    private PasteRepository pasteRepository;
+    private SnippetRepository snippetRepository;
     LocalDateTime localDateTime;
 
     @Override
@@ -30,7 +30,7 @@ public class PasteServiceImpl implements PasteBinService {
 
         try {
             // since we are using the paste bin name as a unique, this should return null if the name already exists
-            Paste createdPaste =  pasteRepository.save(paste);
+            Paste createdPaste =  snippetRepository.save(paste);
             if(createdPaste.getCreated_at() == null){
                 throw  new IllegalArgumentException("A paste with the name " + newPaste.getName() +"Already exists");
             }
@@ -53,7 +53,7 @@ public class PasteServiceImpl implements PasteBinService {
         int extendExpiresAtBySeconds = 30;
 
         try {
-            getPaste =  pasteRepository.getByName(pasteBinName);
+            getPaste =  snippetRepository.getByName(pasteBinName);
             // check if a valid paste bin name was provided by the user
             if (getPaste == null){
                 throw new IllegalArgumentException("Invalid paste Name");
@@ -65,7 +65,7 @@ public class PasteServiceImpl implements PasteBinService {
                 // extend the expiring date by x seconds
                 getPaste.setExpires_at(getPaste.getExpires_at().plusSeconds(extendExpiresAtBySeconds));
                 getPaste.setTotalLikes(getPaste.getTotalLikes() + 1);
-                paste = pasteRepository.save(getPaste);
+                paste = snippetRepository.save(getPaste);
                 apiResponse = convertToPasteResDTO(paste);
             }
         }catch ( Exception e){
@@ -88,7 +88,7 @@ public class PasteServiceImpl implements PasteBinService {
         }
 
         try {
-            retrievedPaste =  pasteRepository.getByName(pasteBinName);
+            retrievedPaste =  snippetRepository.getByName(pasteBinName);
 
             if(retrievedPaste == null){
                 throw  new NotFoundException("404 Not Found");
