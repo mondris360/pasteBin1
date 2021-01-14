@@ -3,6 +3,8 @@ package com.mondris.pastebinapp.demo.Model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -17,6 +19,8 @@ public class User {
     private long Id;
     private String firstName;
     private String lastName;
-    private Timestamp createdAt;
-    private Timestamp updatedAt;
+    @CreationTimestamp
+    private Timestamp created_at;
+    @UpdateTimestamp
+    private Timestamp updated_at;
 }

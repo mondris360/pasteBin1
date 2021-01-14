@@ -17,11 +17,12 @@ import java.sql.Timestamp;
 public class Paste {
     @Id
     private long id;
-    private long UserId;
     private String urlCode;
-    private String content;
+    private String snippet;
+    private Timestamp expires_at;
+    private int totalLikes;
     @CreationTimestamp
-    private Timestamp createdAt;
+    private Timestamp created_at;
     @UpdateTimestamp
-    private Timestamp updatedAt;
+    private Timestamp updated_at;
 }
