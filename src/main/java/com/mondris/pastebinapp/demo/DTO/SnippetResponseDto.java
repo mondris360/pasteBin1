@@ -12,4 +12,5 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class SnippetResponseDto extends SnippetBaseDto {
     private LocalDateTime expires_at;
+    private int likes;
 }

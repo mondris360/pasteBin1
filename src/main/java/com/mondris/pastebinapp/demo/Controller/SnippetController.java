@@ -19,14 +19,14 @@ public class SnippetController {
             return snippetService.createSnippet(snippetRequestDto);
     }
 
-    @PostMapping("/snippets/{name}")
+    @GetMapping("/snippets/{name}")
     public ResponseEntity<Object>  getSnippet(@PathVariable String name) {
         return snippetService.getSnippetByName(name);
     }
     // route to like a snippet
-    @PostMapping("/snippets/{name}/like")
-    public ResponseEntity<Object>  likeSnippetContent(@RequestBody SnippetRequestDto snippetRequestDto) {
-        return snippetService.likeSnippetContent(snippetRequestDto.getName());
+    @GetMapping("/snippets/{name}/like")
+    public ResponseEntity<Object>  likeSnippetContent(@PathVariable String name) {
+        return snippetService.likeSnippetContent(name);
     }
 
 }

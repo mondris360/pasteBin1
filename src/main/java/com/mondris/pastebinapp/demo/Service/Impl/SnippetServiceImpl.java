@@ -5,7 +5,6 @@ import com.mondris.pastebinapp.demo.DTO.SnippetResponseDto;
 import com.mondris.pastebinapp.demo.Model.Snippet;
 import com.mondris.pastebinapp.demo.Repository.SnippetRepository;
 import com.mondris.pastebinapp.demo.Service.SnippetService;
-import javassist.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,8 +32,9 @@ public class SnippetServiceImpl implements SnippetService {
             snippet.setName(newPaste.getName().toLowerCase());
             snippet.setPassword(newPaste.getPassword());
             snippet.setSnippet(newPaste.getSnippet());
-            snippet.setExpires_at(LocalDateTime.now().plusSeconds(newPaste.getExpires_at()));
-
+            // current time + 30 seconds
+            snippet.setExpires_at(LocalDateTime.now().plusSeconds(newPaste.getExpires_in()));
+            System.out.println(snippet);
             // since we are using the snippet name as  our unique key, this should return null if the name already exists
             Snippet createdSnippet = snippetRepository.save(snippet);
             if (createdSnippet.getCreated_at() == null) {
@@ -42,7 +42,8 @@ public class SnippetServiceImpl implements SnippetService {
                 return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
             }
             snippetResponseDto = convertToSnippetResponseDto(createdSnippet);
-            responseEntity = new ResponseEntity<>(snippetResponseDto, HttpStatus.OK);
+            responseEntity = new ResponseEntity<>(snippetResponseDto, HttpStatus.CREATED);
+
         } catch (Exception e) {
             String error = e.getMessage();
             log.warn(error);
@@ -53,7 +54,7 @@ public class SnippetServiceImpl implements SnippetService {
 
 
     @Override
-    // method to like a snippet
+    // method to like a snippet and increment the expiring time by 30secs
     public ResponseEntity<Object>  likeSnippetContent(String snippetName) {
         ResponseEntity<Object> responseEntity;
         Snippet retrievedSnippet = null;
@@ -61,16 +62,19 @@ public class SnippetServiceImpl implements SnippetService {
         SnippetResponseDto snippetResponseDto = null;
         int extendExpiresAtBySeconds = 30;
 
+        if (snippetName == null) {
+            return new ResponseEntity<>("Snippet name cannot be null", HttpStatus.BAD_REQUEST);
+        }
 
         try {
             retrievedSnippet = snippetRepository.getByName(snippetName.toLowerCase());
             if (retrievedSnippet == null) {
                 responseEntity =  new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 // check if the snippet has expired
-            } else if (retrievedSnippet.getExpires_at().isAfter(LocalDateTime.now())) {
+            } else if ((LocalDateTime.now().isAfter(retrievedSnippet.getExpires_at()))) {
                 responseEntity =  new ResponseEntity<>(HttpStatus.NOT_FOUND);
-
             } else {
+
                 // extend the expiring date by X seconds
                 retrievedSnippet.setExpires_at(retrievedSnippet.getExpires_at().plusSeconds(extendExpiresAtBySeconds));
                 retrievedSnippet.setLikes(retrievedSnippet.getLikes() + 1);
@@ -86,16 +90,16 @@ public class SnippetServiceImpl implements SnippetService {
         return responseEntity;
     }
 
-
     // method to retrieve snippet by name
     @Override
     public ResponseEntity<Object>  getSnippetByName(String snippetName) {
+        int extendExpiresAtBySeconds = 30;
         SnippetResponseDto snippetResponseDto = null;
         Snippet retrievedSnippet = null;
         ResponseEntity<Object> responseEntity;
 
         if (snippetName == null) {
-            throw new IllegalArgumentException("The field name cannot be null");
+            return new ResponseEntity<>("Snippet name cannot be null", HttpStatus.BAD_REQUEST);
         }
 
         try {
@@ -103,10 +107,14 @@ public class SnippetServiceImpl implements SnippetService {
             if (retrievedSnippet == null) {
                 responseEntity = new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 // if the snippet has expired
-            } else if (retrievedSnippet.getExpires_at().isAfter(LocalDateTime.now())) {
+            } else if ((LocalDateTime.now().isAfter(retrievedSnippet.getExpires_at()))) {
                 responseEntity = new ResponseEntity<>(HttpStatus.NOT_FOUND);
             } else {
+                // extend the expiring date by X seconds and update the snippet in the db
+                retrievedSnippet.setExpires_at(retrievedSnippet.getExpires_at().plusSeconds(extendExpiresAtBySeconds));
+                retrievedSnippet = snippetRepository.save(retrievedSnippet);
                 snippetResponseDto = convertToSnippetResponseDto(retrievedSnippet);
+
                 responseEntity =  new ResponseEntity<>(snippetResponseDto, HttpStatus.OK);
             }
 
@@ -119,15 +127,17 @@ public class SnippetServiceImpl implements SnippetService {
     }
 
 
-    // method to convert a Paste Model to a PasteDto
+    // method to convert a Snippet Model to  snippetResponseDto
     private SnippetResponseDto convertToSnippetResponseDto(Snippet snippet) {
-        SnippetResponseDto pasteDto = new SnippetResponseDto();
-        pasteDto.setName(snippet.getName());
-        pasteDto.setExpires_at(snippet.getExpires_at());
-        pasteDto.setSnippet(snippet.getSnippet());
-        pasteDto.setUrl(baseUrl + snippet.getName());
-        return pasteDto;
-    }
+        SnippetResponseDto snippetResponseDto = new SnippetResponseDto();
+        snippetResponseDto.setName(snippet.getName());
+        snippetResponseDto.setExpires_at(snippet.getExpires_at());
+        snippetResponseDto.setSnippet(snippet.getSnippet());
+        snippetResponseDto.setUrl(baseUrl + snippet.getName());
+        snippetResponseDto.setPassword(snippet.getPassword());
+        snippetResponseDto.setLikes(snippet.getLikes());
 
+        return snippetResponseDto;
+    }
 
 }
