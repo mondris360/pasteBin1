@@ -3,10 +3,7 @@ package com.mondris.pastebinapp.demo.Controller;
 import com.mondris.pastebinapp.demo.DTO.PasteReqDto;
 import com.mondris.pastebinapp.demo.DTO.PasteResDto;
 import com.mondris.pastebinapp.demo.Service.PasteBinService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -21,6 +18,11 @@ public class PasteController {
             return pasteBinService.createPaste(pasteReqDto);
     }
 
+    @PostMapping("/snippets/{name}")
+    public  PasteResDto getPasteBin(@PathVariable String name) throws Exception {
+        return pasteBinService.getPasteBinByName(name);
+    }
+    // route to like a paste bin content
     @PostMapping("/likeSnippet")
     public  PasteResDto likeSnippetContent(@RequestBody PasteReqDto pasteReqDto) throws Exception {
         return pasteBinService.likePasteContent(pasteReqDto.getName());
