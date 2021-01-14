@@ -3,6 +3,7 @@ package com.mondris.pastebinapp.demo.Controller;
 import com.mondris.pastebinapp.demo.DTO.SnippetRequestDto;
 import com.mondris.pastebinapp.demo.DTO.SnippetResponseDto;
 import com.mondris.pastebinapp.demo.Service.SnippetService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -13,18 +14,18 @@ public class SnippetController {
     private SnippetService snippetService;
 
     // method to create a new snippet
-    @PostMapping("/createSnippet")
-    public SnippetResponseDto createSnippet(@RequestBody SnippetRequestDto snippetRequestDto) throws Exception {
+    @PostMapping("/snippets")
+    public ResponseEntity<Object> createSnippet(@RequestBody SnippetRequestDto snippetRequestDto){
             return snippetService.createSnippet(snippetRequestDto);
     }
 
-    @PostMapping("/snippets/{name}/like")
-    public SnippetResponseDto getSnippet(@PathVariable String name) throws Exception {
+    @PostMapping("/snippets/{name}")
+    public ResponseEntity<Object>  getSnippet(@PathVariable String name) {
         return snippetService.getSnippetByName(name);
     }
-    // route to like a paste bin content
-    @PostMapping("/likeSnippet")
-    public SnippetResponseDto likeSnippetContent(@RequestBody SnippetRequestDto snippetRequestDto) throws Exception {
+    // route to like a snippet
+    @PostMapping("/snippets/{name}/like")
+    public ResponseEntity<Object>  likeSnippetContent(@RequestBody SnippetRequestDto snippetRequestDto) {
         return snippetService.likeSnippetContent(snippetRequestDto.getName());
     }
 

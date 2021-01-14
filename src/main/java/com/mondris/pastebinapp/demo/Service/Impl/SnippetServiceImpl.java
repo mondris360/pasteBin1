@@ -7,6 +7,8 @@ import com.mondris.pastebinapp.demo.Repository.SnippetRepository;
 import com.mondris.pastebinapp.demo.Service.SnippetService;
 import javassist.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -21,89 +23,99 @@ public class SnippetServiceImpl implements SnippetService {
     LocalDateTime localDateTime;
 
     @Override
-    public SnippetResponseDto createSnippet(SnippetRequestDto newPaste) throws Exception {
+    public ResponseEntity<Object> createSnippet(SnippetRequestDto newPaste)  {
         Snippet snippet = new Snippet();
-        SnippetResponseDto pasteResDto;
-        // create a new snippet  Object from the DTO
-        snippet.setName(newPaste.getName());
-        snippet.setPassword(newPaste.getPassword());
-        snippet.setSnippet(newPaste.getSnippet());
-        snippet.setExpires_at(LocalDateTime.now().plusSeconds(newPaste.getExpires_at()));
+        SnippetResponseDto snippetResponseDto;
+        ResponseEntity<Object> responseEntity;
 
         try {
-            // since we are using the paste bin name as a unique, this should return null if the name already exists
+            // create a new snippet  Object from the DTO
+            snippet.setName(newPaste.getName().toLowerCase());
+            snippet.setPassword(newPaste.getPassword());
+            snippet.setSnippet(newPaste.getSnippet());
+            snippet.setExpires_at(LocalDateTime.now().plusSeconds(newPaste.getExpires_at()));
+
+            // since we are using the snippet name as  our unique key, this should return null if the name already exists
             Snippet createdSnippet = snippetRepository.save(snippet);
             if (createdSnippet.getCreated_at() == null) {
-                throw new IllegalArgumentException("A paste with the name " + newPaste.getName() + "Already exists");
+                String error = "A snippet with the name " + newPaste.getName() + " already exists";
+                return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
             }
-            pasteResDto = convertToSnippetResponseDto(createdSnippet);
+            snippetResponseDto = convertToSnippetResponseDto(createdSnippet);
+            responseEntity = new ResponseEntity<>(snippetResponseDto, HttpStatus.OK);
         } catch (Exception e) {
-            log.warn(e.getMessage());
-            throw new Exception(e.getMessage());
+            String error = e.getMessage();
+            log.warn(error);
+            responseEntity = new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        return pasteResDto;
+        return responseEntity ;
     }
 
 
     @Override
     // method to like a snippet
-    public SnippetResponseDto likeSnippetContent(String snippetName) throws Exception {
+    public ResponseEntity<Object>  likeSnippetContent(String snippetName) {
+        ResponseEntity<Object> responseEntity;
         Snippet retrievedSnippet = null;
         Snippet snippet;
-        SnippetResponseDto apiResponse = null;
+        SnippetResponseDto snippetResponseDto = null;
         int extendExpiresAtBySeconds = 30;
 
 
         try {
-            retrievedSnippet = snippetRepository.getByName(snippetName);
-            // check if a valid paste bin name was provided by the user
+            retrievedSnippet = snippetRepository.getByName(snippetName.toLowerCase());
             if (retrievedSnippet == null) {
-                throw new IllegalArgumentException("Invalid Snippet Name");
+                responseEntity =  new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 // check if the snippet has expired
             } else if (retrievedSnippet.getExpires_at().isAfter(LocalDateTime.now())) {
-                throw new IllegalArgumentException("Snippet has Expired");
+                responseEntity =  new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
             } else {
                 // extend the expiring date by X seconds
                 retrievedSnippet.setExpires_at(retrievedSnippet.getExpires_at().plusSeconds(extendExpiresAtBySeconds));
                 retrievedSnippet.setLikes(retrievedSnippet.getLikes() + 1);
                 snippet = snippetRepository.save(retrievedSnippet);
-                apiResponse = convertToSnippetResponseDto(snippet);
+                snippetResponseDto = convertToSnippetResponseDto(snippet);
+                responseEntity = new ResponseEntity<>(snippetResponseDto, HttpStatus.OK);
             }
+
         } catch (Exception e) {
             log.warn(e.getMessage());
-            throw new Exception(e.getMessage());
+            responseEntity =  new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return apiResponse;
+        return responseEntity;
     }
 
 
     // method to retrieve snippet by name
     @Override
-    public SnippetResponseDto getSnippetByName(String pasteBinName) throws Exception {
-        SnippetResponseDto pasteResDto = null;
+    public ResponseEntity<Object>  getSnippetByName(String snippetName) {
+        SnippetResponseDto snippetResponseDto = null;
         Snippet retrievedSnippet = null;
+        ResponseEntity<Object> responseEntity;
 
-        if (pasteBinName == null) {
+        if (snippetName == null) {
             throw new IllegalArgumentException("The field name cannot be null");
         }
 
         try {
-            retrievedSnippet = snippetRepository.getByName(pasteBinName);
+            retrievedSnippet = snippetRepository.getByName(snippetName.toLowerCase());
             if (retrievedSnippet == null) {
-                throw new NotFoundException("404 Not Found");
+                responseEntity = new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 // if the snippet has expired
             } else if (retrievedSnippet.getExpires_at().isAfter(LocalDateTime.now())) {
-                throw new IllegalAccessException("404 Not Found");
+                responseEntity = new ResponseEntity<>(HttpStatus.NOT_FOUND);
             } else {
-                pasteResDto = convertToSnippetResponseDto(retrievedSnippet);
+                snippetResponseDto = convertToSnippetResponseDto(retrievedSnippet);
+                responseEntity =  new ResponseEntity<>(snippetResponseDto, HttpStatus.OK);
             }
 
         } catch (Exception e) {
             log.warn(e.getMessage());
-            throw new Exception(e.getMessage());
+            responseEntity =  new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return pasteResDto;
+
+        return responseEntity;
     }
 
 

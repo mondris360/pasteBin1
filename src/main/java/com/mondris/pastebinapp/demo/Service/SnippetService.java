@@ -1,10 +1,10 @@
 package com.mondris.pastebinapp.demo.Service;
 
 import com.mondris.pastebinapp.demo.DTO.SnippetRequestDto;
-import com.mondris.pastebinapp.demo.DTO.SnippetResponseDto;
+import org.springframework.http.ResponseEntity;
 
 public interface SnippetService {
-    public SnippetResponseDto createSnippet(SnippetRequestDto newPaste) throws Exception;
-    public SnippetResponseDto likeSnippetContent(String pasteBinName) throws Exception;
-    public SnippetResponseDto getSnippetByName(String pasteBinName) throws  Exception;
+    public ResponseEntity<Object> createSnippet(SnippetRequestDto snippet);
+    public ResponseEntity<Object>  likeSnippetContent(String snippetName) ;
+    public ResponseEntity<Object>  getSnippetByName(String snippetName);
 }
