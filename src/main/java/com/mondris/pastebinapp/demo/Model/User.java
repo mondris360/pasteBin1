@@ -1,4 +1,4 @@
-package com.mondris.pastebinapp.demo.DTO;
+package com.mondris.pastebinapp.demo.Model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

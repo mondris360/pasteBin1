@@ -1,4 +1,4 @@
-package com.mondris.pastebinapp.demo.DTO;
+package com.mondris.pastebinapp.demo.Model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,6 +17,8 @@ import java.sql.Timestamp;
 public class Paste {
     @Id
     private long id;
+    private long UserId;
+    private String urlCode;
     private String content;
     @CreationTimestamp
     private Timestamp createdAt;
