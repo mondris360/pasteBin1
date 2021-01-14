@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface PasteRepository extends JpaRepository<Paste, Long> {
-    List<Paste> findByUrlCode(String urlShortCode);
+    Paste getByName(String pasteBinName);
 }

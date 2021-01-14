@@ -1,4 +1,86 @@
 package com.mondris.pastebinapp.demo.Service.Impl;
 
-public class PasteServiceImpl {
+import com.mondris.pastebinapp.demo.DTO.PasteReqDto;
+import com.mondris.pastebinapp.demo.DTO.PasteResDto;
+import com.mondris.pastebinapp.demo.Model.Paste;
+import com.mondris.pastebinapp.demo.Repository.PasteRepository;
+import com.mondris.pastebinapp.demo.Service.PasteBinService;
+
+import javax.annotation.Resource;
+import java.time.LocalDateTime;
+
+public class PasteServiceImpl implements PasteBinService {
+    private String baseUrl = "https://example.com/snippets/";
+    @Resource   // better than using @ Autowired
+    private PasteRepository pasteRepository;
+    LocalDateTime localDateTime;
+
+    @Override
+    public PasteResDto createPaste(PasteReqDto newPaste) throws Exception {
+        Paste paste = new Paste();
+        PasteResDto pasteResDto;
+        // create a new paste Object from the DTO
+        paste.setName(newPaste.getName());
+        paste.setPassword(newPaste.getPassword());
+        paste.setSnippet(newPaste.getSnippet());
+        paste.setExpires_at(LocalDateTime.now().plusSeconds(newPaste.getExpires_at()));
+
+
+
+        try {
+            // since we are using the paste bin name as a unique, this should return null if the name already exists
+            Paste createdPaste =  pasteRepository.save(paste);
+            if(createdPaste.getCreated_at() == null){
+                throw  new IllegalArgumentException("A paste with the name " + newPaste.getName() +"Already exists");
+            }
+            pasteResDto = convertToPasteResDTO(createdPaste);
+        }catch (Exception exception){
+            throw  new Exception(exception.getMessage());
+        }
+
+        return pasteResDto;
+    }
+
+    @Override
+    // method to like a paste content
+    public PasteResDto likePasteContent(String pasteBinName) throws Exception{
+        Paste getPaste = null;
+        Paste paste ;
+        PasteResDto apiResponse = null;
+        int extendExpiresAtBySeconds = 30;
+
+        try {
+            getPaste =  pasteRepository.getByName(pasteBinName);
+            // check if a valid paste bin name was provided by the user
+            if (getPaste == null){
+                throw new IllegalArgumentException("Invalid paste Name");
+            } else if (getPaste.getExpires_at().isAfter(LocalDateTime.now()) ){
+                throw new IllegalArgumentException("Paste Bin has Expired");
+                //Todo: Delete it from the db
+            } else {
+                // extend the expiring date by x seconds
+                getPaste.setExpires_at(getPaste.getExpires_at().plusSeconds(extendExpiresAtBySeconds));
+                getPaste.setTotalLikes(getPaste.getTotalLikes() + 1);
+                paste = pasteRepository.save(getPaste);
+                apiResponse = convertToPasteResDTO(paste);
+            }
+        }catch ( Exception exception){
+                throw new Exception(exception.getMessage());
+        }
+
+        return apiResponse;
+    }
+
+    // method to convert a Paste Model to a PasteDto
+    private PasteResDto convertToPasteResDTO(Paste paste){
+        PasteResDto pasteDto = new PasteResDto();
+        pasteDto.setName(paste.getName());
+        pasteDto.setExpires_at(paste.getExpires_at());
+        pasteDto.setSnippet(paste.getSnippet());
+        pasteDto.setUrl(baseUrl + paste.getName());
+        return  pasteDto;
+    }
+
+
+
 }
