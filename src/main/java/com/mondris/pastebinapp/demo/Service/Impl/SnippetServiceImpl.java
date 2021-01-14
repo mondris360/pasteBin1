@@ -1,119 +1,122 @@
 package com.mondris.pastebinapp.demo.Service.Impl;
 
 import com.mondris.pastebinapp.demo.DTO.SnippetRequestDto;
-import com.mondris.pastebinapp.demo.DTO.PasteResDto;
-import com.mondris.pastebinapp.demo.Model.Paste;
+import com.mondris.pastebinapp.demo.DTO.SnippetResponseDto;
+import com.mondris.pastebinapp.demo.Model.Snippet;
 import com.mondris.pastebinapp.demo.Repository.SnippetRepository;
-import com.mondris.pastebinapp.demo.Service.PasteBinService;
+import com.mondris.pastebinapp.demo.Service.SnippetService;
 import javassist.NotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
 
 @Service
-public class SnippetServiceImpl implements PasteBinService {
+@Slf4j
+public class SnippetServiceImpl implements SnippetService {
     private String baseUrl = "https://example.com/snippets/";
     @Resource   // better than using @ Autowired
     private SnippetRepository snippetRepository;
     LocalDateTime localDateTime;
 
     @Override
-    public PasteResDto createSnippet(SnippetRequestDto newPaste) throws Exception {
-        Paste paste = new Paste();
-        PasteResDto pasteResDto;
+    public SnippetResponseDto createSnippet(SnippetRequestDto newPaste) throws Exception {
+        Snippet snippet = new Snippet();
+        SnippetResponseDto pasteResDto;
         // create a new paste Object from the DTO
-        paste.setName(newPaste.getName());
-        paste.setPassword(newPaste.getPassword());
-        paste.setSnippet(newPaste.getSnippet());
-        paste.setExpires_at(LocalDateTime.now().plusSeconds(newPaste.getExpires_at()));
+        snippet.setName(newPaste.getName());
+        snippet.setPassword(newPaste.getPassword());
+        snippet.setSnippet(newPaste.getSnippet());
+        snippet.setExpires_at(LocalDateTime.now().plusSeconds(newPaste.getExpires_at()));
 
         try {
             // since we are using the paste bin name as a unique, this should return null if the name already exists
-            Paste createdPaste =  snippetRepository.save(paste);
-            if(createdPaste.getCreated_at() == null){
-                throw  new IllegalArgumentException("A paste with the name " + newPaste.getName() +"Already exists");
+            Snippet createdSnippet = snippetRepository.save(snippet);
+            if (createdSnippet.getCreated_at() == null) {
+                throw new IllegalArgumentException("A paste with the name " + newPaste.getName() + "Already exists");
             }
-            pasteResDto = convertToPasteResDTO(createdPaste);
-        }catch (Exception exception){
-            throw  new Exception(exception.getMessage());
+            pasteResDto = convertToPasteResDTO(createdSnippet);
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+            throw new Exception(e.getMessage());
         }
 
         return pasteResDto;
     }
 
 
-
     @Override
-    // method to like a paste content
-    public PasteResDto likeSnippetContent(String pasteBinName) throws Exception{
-        Paste getPaste = null;
-        Paste paste ;
-        PasteResDto apiResponse = null;
+    // method to like a snippet
+    public SnippetResponseDto likeSnippetContent(String snippetName) throws Exception {
+        Snippet retrievedSnippet = null;
+        Snippet snippet;
+        SnippetResponseDto apiResponse = null;
         int extendExpiresAtBySeconds = 30;
 
         try {
-            getPaste =  snippetRepository.getByName(pasteBinName);
-            // check if a valid paste bin name was provided by the user
-            if (getPaste == null){
-                throw new IllegalArgumentException("Invalid paste Name");
-                // if the paste has expired.
-            } else if (getPaste.getExpires_at().isAfter(LocalDateTime.now()) ){
-                throw new IllegalArgumentException("Paste Bin has Expired");
-                //Todo: Delete it from the db
-            } else {
-                // extend the expiring date by x seconds
-                getPaste.setExpires_at(getPaste.getExpires_at().plusSeconds(extendExpiresAtBySeconds));
-                getPaste.setTotalLikes(getPaste.getTotalLikes() + 1);
-                paste = snippetRepository.save(getPaste);
-                apiResponse = convertToPasteResDTO(paste);
-            }
-        }catch ( Exception e){
-                throw new Exception(e.getMessage());
-        }
+            retrievedSnippet = snippetRepository.getByName(snippetName);
 
+            // check if a valid paste bin name was provided by the user
+            if (retrievedSnippet == null) {
+                throw new IllegalArgumentException("Invalid Snippet Name");
+                // check if the snippet has expired
+            } else if (retrievedSnippet.getExpires_at().isAfter(LocalDateTime.now())) {
+                throw new IllegalArgumentException("Snippet has Expired");
+            } else {
+                // extend the expiring date by X seconds
+                retrievedSnippet.setExpires_at(retrievedSnippet.getExpires_at().plusSeconds(extendExpiresAtBySeconds));
+                retrievedSnippet.setLikes(retrievedSnippet.getLikes() + 1);
+                snippet = snippetRepository.save(retrievedSnippet);
+                apiResponse = convertToPasteResDTO(snippet);
+            }
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+            throw new Exception(e.getMessage());
+        }
         return apiResponse;
     }
 
 
-
-    // method to retrieve paste bin content by Name
+    // method to retrieve snippet by name
     @Override
-    public PasteResDto getSnippetByName(String pasteBinName) throws Exception {
-        PasteResDto pasteResDto = null;
-        Paste retrievedPaste =  null;
+    public SnippetResponseDto getSnippetByName(String pasteBinName) throws Exception {
+        SnippetResponseDto pasteResDto = null;
+        Snippet retrievedSnippet = null;
 
-        if (pasteBinName == null){
+        if (pasteBinName == null) {
             throw new IllegalArgumentException("The field name cannot be null");
         }
 
         try {
-            retrievedPaste =  snippetRepository.getByName(pasteBinName);
+            retrievedSnippet = snippetRepository.getByName(pasteBinName);
 
-            if(retrievedPaste == null){
-                throw  new NotFoundException("404 Not Found");
+            if (retrievedSnippet == null) {
+                throw new NotFoundException("404 Not Found");
                 // if the snippet has expired
-            } else if(retrievedPaste.getExpires_at().isAfter(LocalDateTime.now())){
+            } else if (retrievedSnippet.getExpires_at().isAfter(LocalDateTime.now())) {
                 throw new IllegalAccessException("404 Not Found");
             } else {
-                pasteResDto = convertToPasteResDTO(retrievedPaste);
+                pasteResDto = convertToPasteResDTO(retrievedSnippet);
             }
-        } catch (Exception e){
-            throw  new Exception( e.getMessage());
+
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+            throw new Exception(e.getMessage());
         }
         return pasteResDto;
     }
 
-    // method to convert a Paste Model to a PasteDto
-    private PasteResDto convertToPasteResDTO(Paste paste){
-        PasteResDto pasteDto = new PasteResDto();
-        pasteDto.setName(paste.getName());
-        pasteDto.setExpires_at(paste.getExpires_at());
-        pasteDto.setSnippet(paste.getSnippet());
-        pasteDto.setUrl(baseUrl + paste.getName());
-        return  pasteDto;
-    }
 
+    // method to convert a Paste Model to a PasteDto
+    private SnippetResponseDto convertToPasteResDTO(Snippet snippet) {
+        SnippetResponseDto pasteDto = new SnippetResponseDto();
+        pasteDto.setName(snippet.getName());
+        pasteDto.setExpires_at(snippet.getExpires_at());
+        pasteDto.setSnippet(snippet.getSnippet());
+        pasteDto.setUrl(baseUrl + snippet.getName());
+        return pasteDto;
+    }
 
 
 }

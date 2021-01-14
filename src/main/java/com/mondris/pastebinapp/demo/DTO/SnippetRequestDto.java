@@ -1,6 +1,6 @@
 package com.mondris.pastebinapp.demo.DTO;
 
-import com.mondris.pastebinapp.demo.DTO.BaseDto.PasteBaseDto;
+import com.mondris.pastebinapp.demo.DTO.BaseDto.SnippetBaseDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SnippetRequestDto extends PasteBaseDto {
+public class SnippetRequestDto extends SnippetBaseDto {
     private  long expires_at;
 }

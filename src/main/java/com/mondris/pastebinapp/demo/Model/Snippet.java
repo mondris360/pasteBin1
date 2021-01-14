@@ -16,15 +16,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class Paste {
+public class Snippet {
     @Id
-//    private long id;
     @Column(name = "name", nullable = false)
     private String name;
     private  String password;
     private String snippet;
     private LocalDateTime expires_at;
-    private int totalLikes;
+    private int likes;
     @CreationTimestamp
     private Timestamp created_at;
     @UpdateTimestamp

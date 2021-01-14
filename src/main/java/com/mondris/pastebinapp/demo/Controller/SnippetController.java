@@ -14,12 +14,12 @@ public class SnippetController {
 
     // method to create a new snippet
     @PostMapping("/createSnippet")
-    public SnippetResponseDto createdSnippet(@RequestBody SnippetRequestDto snippetRequestDto) throws Exception {
+    public SnippetResponseDto createSnippet(@RequestBody SnippetRequestDto snippetRequestDto) throws Exception {
             return snippetService.createSnippet(snippetRequestDto);
     }
 
-    @PostMapping("/snippets/{name}")
-    public SnippetResponseDto getPasteBin(@PathVariable String name) throws Exception {
+    @PostMapping("/snippets/{name}/like")
+    public SnippetResponseDto getSnippet(@PathVariable String name) throws Exception {
         return snippetService.getSnippetByName(name);
     }
     // route to like a paste bin content

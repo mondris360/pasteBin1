@@ -10,7 +10,7 @@ import java.sql.Timestamp;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class PasteBaseDto {
+public class SnippetBaseDto {
     private String name;
     private String url;
     private String  snippet;
