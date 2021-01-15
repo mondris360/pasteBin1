@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.validation.constraints.NotBlank;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
@@ -21,8 +22,10 @@ import java.time.LocalDateTime;
 public class Snippet {
     @Id
     @Column(name = "name", nullable = false)
+    @NotBlank(message = "name is mandatory")
     private String name;
     private  String password;
+    @NotBlank(message = "snippet is mandatory")
     private String snippet;
     private LocalDateTime expires_at;
     private int likes;

@@ -3,10 +3,16 @@ package com.mondris.pastebinapp.demo.Controller;
 import com.mondris.pastebinapp.demo.DTO.SnippetRequestDto;
 import com.mondris.pastebinapp.demo.DTO.SnippetResponseDto;
 import com.mondris.pastebinapp.demo.Service.SnippetService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 public class SnippetController {
@@ -15,7 +21,7 @@ public class SnippetController {
 
     // method to create a new snippet
     @PostMapping("/snippets")
-    public ResponseEntity<Object> createSnippet(@RequestBody SnippetRequestDto snippetRequestDto){
+    public ResponseEntity<Object> createSnippet(@Valid @RequestBody SnippetRequestDto snippetRequestDto){
             return snippetService.createSnippet(snippetRequestDto);
     }
 
@@ -28,5 +34,6 @@ public class SnippetController {
     public ResponseEntity<Object>  likeSnippetContent(@PathVariable String name) {
         return snippetService.likeSnippetContent(name);
     }
+
 
 }
