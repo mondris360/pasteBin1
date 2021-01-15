@@ -11,6 +11,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
@@ -22,10 +23,11 @@ import java.time.LocalDateTime;
 public class Snippet {
     @Id
     @Column(name = "name", nullable = false)
-    @NotBlank(message = "name is mandatory")
     private String name;
     private  String password;
     @NotBlank(message = "snippet is mandatory")
+    @Column(name="snippet", columnDefinition="TEXT")
+    @Size(min = 2, max = 65535 , message =" snippet cannot be more than 65,535 characters/ 16KB" )
     private String snippet;
     private LocalDateTime expires_at;
     private int likes;

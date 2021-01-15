@@ -11,8 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.validation.Valid;
-import java.util.HashMap;
-import java.util.Map;
+
 
 @RestController
 public class SnippetController {
@@ -22,6 +21,7 @@ public class SnippetController {
     // method to create a new snippet
     @PostMapping("/snippets")
     public ResponseEntity<Object> createSnippet(@Valid @RequestBody SnippetRequestDto snippetRequestDto){
+        System.out.println("inside controller");
             return snippetService.createSnippet(snippetRequestDto);
     }
 

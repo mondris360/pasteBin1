@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
@@ -16,31 +17,33 @@ import java.time.LocalDateTime;
 @Service
 @Slf4j
 public class SnippetServiceImpl implements SnippetService {
-    private String baseUrl = "https://example.com/snippets/";
     @Resource   // better than using @ Autowired
     private SnippetRepository snippetRepository;
     LocalDateTime localDateTime;
 
     @Override
-    public ResponseEntity<Object> createSnippet(SnippetRequestDto newPaste)  {
+    @Transactional
+    public ResponseEntity<Object> createSnippet(SnippetRequestDto newSnippet)  {
+
         Snippet snippet = new Snippet();
         SnippetResponseDto snippetResponseDto;
         ResponseEntity<Object> responseEntity;
 
         try {
             // create a new snippet  Object from the DTO
-            snippet.setName(newPaste.getName().toLowerCase());
-            snippet.setPassword(newPaste.getPassword());
-            snippet.setSnippet(newPaste.getSnippet());
+            snippet.setName(newSnippet.getName().toLowerCase());
+            snippet.setPassword(newSnippet.getPassword());
+            snippet.setSnippet(newSnippet.getSnippet());
             // current time + 30 seconds
-            snippet.setExpires_at(LocalDateTime.now().plusSeconds(newPaste.getExpires_in()));
+            snippet.setExpires_at(LocalDateTime.now().plusSeconds(newSnippet.getExpires_in()));
             System.out.println(snippet);
-            // since we are using the snippet name as  our unique key, this should return null if the name already exists
-            Snippet createdSnippet = snippetRepository.save(snippet);
-            if (createdSnippet.getCreated_at() == null) {
-                String error = "A snippet with the name " + newPaste.getName() + " already exists";
+            // check if the snippet name already exits
+            Snippet getSnippet =  snippetRepository.getByName(newSnippet.getName());
+            if (getSnippet != null) {
+                String error = "A snippet with the name " + newSnippet.getName() + " already exists";
                 return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
             }
+            Snippet createdSnippet = snippetRepository.save(snippet);
             snippetResponseDto = convertToSnippetResponseDto(createdSnippet);
             responseEntity = new ResponseEntity<>(snippetResponseDto, HttpStatus.CREATED);
 
@@ -129,6 +132,8 @@ public class SnippetServiceImpl implements SnippetService {
 
     // method to convert a Snippet Model to  snippetResponseDto
     private SnippetResponseDto convertToSnippetResponseDto(Snippet snippet) {
+
+        final  String baseUrl = "https://example.com/snippets/";
         SnippetResponseDto snippetResponseDto = new SnippetResponseDto();
         snippetResponseDto.setName(snippet.getName());
         snippetResponseDto.setExpires_at(snippet.getExpires_at());
